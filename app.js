@@ -249,7 +249,7 @@ class Joystick {
         event.preventDefault();
         
         const pos = this.getEventPosition(event);
-        let dx = pos.x - this.centerX;
+        let dx = -(pos.x - this.centerX);
         let dy = pos.y - this.centerY;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
@@ -259,7 +259,7 @@ class Joystick {
             dy = this.radius * Math.sin(angle);
         }
         
-        this.stickX = -(this.centerX + dx);
+        this.stickX = this.centerX + dx;
         this.stickY = this.centerY + dy;
         
         this.draw();
