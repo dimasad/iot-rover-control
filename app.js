@@ -259,7 +259,7 @@ class Joystick {
             dy = this.radius * Math.sin(angle);
         }
         
-        this.stickX = this.centerX + dx;
+        this.stickX = -(this.centerX + dx);
         this.stickY = this.centerY + dy;
         
         this.draw();
