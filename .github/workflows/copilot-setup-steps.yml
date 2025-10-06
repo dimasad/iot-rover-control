@@ -1,0 +1,34 @@
+name: Copilot Development Environment Setup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Mosquitto MQTT Broker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mosquitto mosquitto-clients
+          sudo systemctl start mosquitto
+          sudo systemctl status mosquitto
+      
+      - name: Install Node.js dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Start local development server (optional)
+        run: |
+          echo "To start the development server, run: npm start"
+          echo "The application will be available at http://localhost:8080"
