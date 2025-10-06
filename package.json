@@ -7,7 +7,12 @@
     "test": "jest",
     "start": "npx http-server -p 8080"
   },
-  "keywords": ["iot", "rover", "mqtt", "arduino"],
+  "keywords": [
+    "iot",
+    "rover",
+    "mqtt",
+    "arduino"
+  ],
   "author": "Dimas Abreu Archanjo Dutra",
   "license": "MIT",
   "dependencies": {
@@ -15,12 +20,17 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
+    "http-server": "^14.1.1",
     "jest": "^29.7.0"
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/tests/**/*.test.js"],
-    "collectCoverageFrom": ["app.js"],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "app.js"
+    ],
     "testTimeout": 30000
   }
 }

@@ -100,6 +100,14 @@ The application defaults to the EMQX public broker: `wss://broker.emqx.io:8084/m
 - All connections use secure WebSockets (wss://)
 - Client IDs are randomly generated: `client_XXXXXX` (6 random alphanumeric characters)
 
+### Dependencies
+
+The application loads MQTT.js (v5.11.1) from the unpkg.com CDN. This ensures:
+- No build step required
+- Always up-to-date with the specified version
+- Smaller repository size
+- Faster initial page load with CDN caching
+
 ## Development
 
 ### Project Structure
