@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Rover Control</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Top Menu Bar -->
+    <div class="menu-bar">
+        <div class="menu-left">
+            <button id="hamburger-btn" class="hamburger-btn">☰</button>
+            <span class="app-title">IoT Rover Control</span>
+        </div>
+        <div class="menu-right">
+            <span class="broker-label">Broker: <span id="broker-name">EMQX</span></span>
+            <span class="connection-status" id="connection-status">
+                <span class="status-indicator disconnected"></span>
+                <span class="status-text">Disconnected</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Hamburger Menu -->
+    <div id="hamburger-menu" class="hamburger-menu">
+        <h3>Broker Settings</h3>
+        <div class="menu-section">
+            <label>Broker URL:</label>
+            <input type="text" id="broker-url" value="wss://broker.emqx.io:8084/mqtt">
+        </div>
+        <div class="menu-section">
+            <label>Username:</label>
+            <input type="text" id="broker-username" value="">
+        </div>
+        <div class="menu-section">
+            <label>Password:</label>
+            <input type="password" id="broker-password" value="">
+        </div>
+        <div class="menu-buttons">
+            <button id="connect-btn" class="menu-btn">Connect</button>
+            <button id="disconnect-btn" class="menu-btn">Disconnect</button>
+        </div>
+        <button id="close-menu-btn" class="close-menu-btn">Close</button>
+    </div>
+
+    <!-- Rover Selection Modal -->
+    <div id="rover-modal" class="modal">
+        <div class="modal-content">
+            <h2>Select Rover</h2>
+            <div class="rover-buttons">
+                <button class="rover-btn" data-rover="1">Rover 1</button>
+                <button class="rover-btn" data-rover="2">Rover 2</button>
+                <button class="rover-btn" data-rover="3">Rover 3</button>
+                <button class="rover-btn" data-rover="4">Rover 4</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="main-content disabled">
+        <div class="control-section">
+            <h2>Rover Controls</h2>
+            <div class="joystick-container">
+                <canvas id="joystick-canvas" width="300" height="300"></canvas>
+            </div>
+            <div class="motor-status">
+                <div class="motor-display">
+                    <span class="motor-label">Left Motor:</span>
+                    <span id="left-motor-value">0</span>
+                </div>
+                <div class="motor-display">
+                    <span class="motor-label">Right Motor:</span>
+                    <span id="right-motor-value">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sensor-section">
+            <h2>Ultrasonic Sensors</h2>
+            <div class="sensor-display">
+                <div class="sensor-bar">
+                    <div class="sensor-info">
+                        <span class="sensor-label">Left Sensor (45°)</span>
+                        <span id="left-sensor-value" class="sensor-value">-- cm</span>
+                    </div>
+                    <div class="bar-container">
+                        <div id="left-sensor-bar" class="bar"></div>
+                    </div>
+                </div>
+                <div class="sensor-bar">
+                    <div class="sensor-info">
+                        <span class="sensor-label">Right Sensor (45°)</span>
+                        <span id="right-sensor-value" class="sensor-value">-- cm</span>
+                    </div>
+                    <div class="bar-container">
+                        <div id="right-sensor-bar" class="bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Console -->
+    <div class="debug-console">
+        <div class="console-header">
+            <span>Debug Console</span>
+            <button id="expand-console-btn" class="expand-btn">▲</button>
+        </div>
+        <div id="console-content" class="console-content collapsed">
+            <div id="console-messages"></div>
+        </div>
+    </div>
+
+    <!-- Load MQTT from CDN -->
+    <script src="https://unpkg.com/mqtt@5.11.1/dist/mqtt.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
