@@ -6,6 +6,7 @@ let mqttClient = null;
 let isConnected = false;
 let joystickActive = false;
 let currentMotors = { left: 0, right: 0 };
+let publishInterval = null;
 
 // Generate random client ID
 function generateClientId() {
@@ -231,6 +232,16 @@ class Joystick {
         if (distance <= this.stickRadius) {
             this.isDragging = true;
             joystickActive = true;
+            
+            // Start interval for publishing motor commands every 200ms
+            if (publishInterval) {
+                clearInterval(publishInterval);
+            }
+            publishInterval = setInterval(() => {
+                if (joystickActive) {
+                    publishMotorCommand(currentMotors.left, currentMotors.right);
+                }
+            }, 200);
         }
     }
     
@@ -263,11 +274,20 @@ class Joystick {
         this.isDragging = false;
         joystickActive = false;
         
+        // Stop the publishing interval
+        if (publishInterval) {
+            clearInterval(publishInterval);
+            publishInterval = null;
+        }
+        
         this.stickX = this.centerX;
         this.stickY = this.centerY;
         
         this.draw();
         this.calculateMotorValues(0, 0, 0);
+        
+        // Send one stop command
+        publishMotorCommand(0, 0);
     }
     
     calculateMotorValues(dx, dy, distance) {
@@ -281,9 +301,10 @@ class Joystick {
         let degrees = (angle * 180 / Math.PI + 180) % 360;
         
         // Determine forward/backward based on vertical position
-        // Top half (0-180 degrees) = forward, bottom half = backward
-        const forward = degrees >= 0 && degrees <= 180;
-        const direction = forward ? 1 : -1;
+        // Bottom half (0-180 degrees, includes 90° = down) = backward
+        // Top half (180-360 degrees, includes 270° = up) = forward
+        const backward = degrees >= 0 && degrees <= 180;
+        const direction = backward ? 1 : -1; // Top stick (270°) = forward = negative values
         
         // Calculate left/right bias
         // At 90 degrees (top) or 270 (bottom): straight
@@ -292,8 +313,8 @@ class Joystick {
         let leftBias = 1;
         let rightBias = 1;
         
-        if (forward) {
-            // Forward motion (top half)
+        if (backward) {
+            // Backward motion (bottom half, 0-180 degrees)
             // degrees: 0-90 (turn right), 90-180 (turn left)
             if (degrees < 90) {
                 // Turning right
@@ -307,7 +328,7 @@ class Joystick {
                 rightBias = 1;
             }
         } else {
-            // Backward motion (bottom half)
+            // Forward motion (top half, 180-360 degrees)
             // degrees: 180-270 (turn left), 270-360 (turn right)
             if (degrees < 270) {
                 // Turning left
@@ -331,7 +352,9 @@ class Joystick {
         currentMotors.right = rightMotor;
         
         updateMotorDisplay(leftMotor, rightMotor);
-        publishMotorCommand(leftMotor, rightMotor);
+        
+        // Don't publish directly here; let the interval handle it
+        // or publish immediately if joystick just became inactive
     }
     
     draw() {
