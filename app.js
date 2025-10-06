@@ -6,6 +6,7 @@ let mqttClient = null;
 let isConnected = false;
 let joystickActive = false;
 let currentMotors = { left: 0, right: 0 };
+let motorPublishTimer = null;
 
 // Generate random client ID
 function generateClientId() {
@@ -231,6 +232,15 @@ class Joystick {
         if (distance <= this.stickRadius) {
             this.isDragging = true;
             joystickActive = true;
+            
+            // Start periodic publishing when joystick becomes active
+            if (!motorPublishTimer) {
+                motorPublishTimer = setInterval(() => {
+                    if (joystickActive) {
+                        publishMotorCommand(currentMotors.left, currentMotors.right);
+                    }
+                }, 200);
+            }
         }
     }
     
@@ -268,70 +278,33 @@ class Joystick {
         
         this.draw();
         this.calculateMotorValues(0, 0, 0);
+        
+        // Stop periodic publishing and send one stop command
+        if (motorPublishTimer) {
+            clearInterval(motorPublishTimer);
+            motorPublishTimer = null;
+        }
+        publishMotorCommand(0, 0);
     }
     
     calculateMotorValues(dx, dy, distance) {
-        // Normalize distance to 0-1
-        const intensity = Math.min(distance / this.radius, 1);
+        // Normalize to unit disc [-1, 1]
+        const clampedDistance = Math.min(distance, this.radius);
+        const x = clampedDistance > 0 ? dx / this.radius : 0;
+        const y = clampedDistance > 0 ? -dy / this.radius : 0; // Negative dy for screen coordinates (up is positive y)
         
-        // Calculate angle (-PI to PI)
-        const angle = Math.atan2(-dy, dx); // Negative dy for screen coordinates
-        
-        // Convert to degrees and normalize to 0-360
-        let degrees = (angle * 180 / Math.PI + 180) % 360;
-        
-        // Determine forward/backward based on vertical position
-        // Top half (0-180 degrees) = forward, bottom half = backward
-        const forward = degrees >= 0 && degrees <= 180;
-        const direction = forward ? 1 : -1;
-        
-        // Calculate left/right bias
-        // At 90 degrees (top) or 270 (bottom): straight
-        // At 0/360 (right): turn right
-        // At 180 (left): turn left
-        let leftBias = 1;
-        let rightBias = 1;
-        
-        if (forward) {
-            // Forward motion (top half)
-            // degrees: 0-90 (turn right), 90-180 (turn left)
-            if (degrees < 90) {
-                // Turning right
-                const turnAmount = (90 - degrees) / 90;
-                leftBias = 1;
-                rightBias = 1 - turnAmount;
-            } else {
-                // Turning left
-                const turnAmount = (degrees - 90) / 90;
-                leftBias = 1 - turnAmount;
-                rightBias = 1;
-            }
-        } else {
-            // Backward motion (bottom half)
-            // degrees: 180-270 (turn left), 270-360 (turn right)
-            if (degrees < 270) {
-                // Turning left
-                const turnAmount = (degrees - 180) / 90;
-                leftBias = 1 - turnAmount;
-                rightBias = 1;
-            } else {
-                // Turning right
-                const turnAmount = (360 - degrees) / 90;
-                leftBias = 1;
-                rightBias = 1 - turnAmount;
-            }
-        }
-        
-        // Calculate final motor values (-255 to 255)
-        const baseValue = Math.round(intensity * 255 * direction);
-        const leftMotor = Math.round(baseValue * leftBias);
-        const rightMotor = Math.round(baseValue * rightBias);
+        // Apply continuous blending math:
+        // (0, 1) -> (255, 255)   forward
+        // (0, -1) -> (-255, -255) backward
+        // (1, 0) -> (-255, 255)  turn right
+        // (-1, 0) -> (255, -255) turn left
+        const leftMotor = Math.round(255 * (y - x));
+        const rightMotor = Math.round(255 * (y + x));
         
         currentMotors.left = leftMotor;
         currentMotors.right = rightMotor;
         
         updateMotorDisplay(leftMotor, rightMotor);
-        publishMotorCommand(leftMotor, rightMotor);
     }
     
     draw() {
